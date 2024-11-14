@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Form</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h2 {
+        color: #333;
+      }
+      label {
+        font-weight: bold;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0 15px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .response {
+        margin-top: 20px;
+        font-size: 1.1em;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Patient Information Form</h2>
+
+    <form id="patientForm">
+      <label for="name">Name:</label><br />
+      <input type="text" id="name" name="name" required /><br />
+
+      <label for="dob">Date of Birth:</label><br />
+      <input type="date" id="dob" name="dob" required /><br />
+
+      <label for="gender">Gender:</label><br />
+      <select id="gender" name="gender" required>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option></select
+      ><br />
+
+      <label for="medicalHistory">Medical History:</label><br />
+      <textarea
+        id="medicalHistory"
+        name="medicalHistory"
+        rows="4"
+        required
+      ></textarea
+      ><br />
+
+      <label for="xrayImage">X-ray Image:</label><br />
+      <input
+        type="file"
+        id="xrayImage"
+        name="xrayImage"
+        accept="image/*"
+        required
+      /><br />
+
+      <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+
+    <div id="response" class="response"></div>
+
+    <script>
+      async function submitForm() {
+        const form = document.getElementById("patientForm");
+        const formData = new FormData(form);
+
+        // Append additional data to be sent in JSON format
+        const data = {
+          name: formData.get("name"),
+          dob: formData.get("dob"),
+          gender: formData.get("gender"),
+          medicalHistory: formData.get("medicalHistory"),
+          xrayImageName: formData.get("xrayImage").name,
+        };
+
+        // Append the file to the form data
+        formData.append("xrayImage", formData.get("xrayImage"));
+
+        try {
+          const response = await fetch("http://localhost:3002/api/patients", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+
+          const responseDiv = document.getElementById("response");
+
+          if (response.ok) {
+            responseDiv.innerHTML = `
+            <p>Patient created successfully.</p>
+            <p><strong>Patient Name:</strong> ${result.name}</p>
+            <p><strong>Date of Birth:</strong> ${result.dob}</p>
+          `;
+          } else {
+            responseDiv.innerHTML = `<p>Error creating patient: ${result.message}</p>`;
+          }
+        } catch (error) {
+          document.getElementById(
+            "response"
+          ).innerHTML = `<p>There was an error: ${error.message}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>
